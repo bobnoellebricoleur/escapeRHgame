@@ -123,8 +123,23 @@ pre{white-space:pre-wrap;word-break:break-all;background:rgba(0,0,0,.35);padding
 #pod.on{display:block}
 .stars{position:absolute;inset:0;background-image:radial-gradient(2px 2px at 20px 30px,#fff,transparent),radial-gradient(2px 2px at 90px 120px,#fff8c4,transparent),radial-gradient(1.5px 1.5px at 160px 60px,#fff,transparent),radial-gradient(2px 2px at 240px 150px,#fff,transparent),radial-gradient(1.5px 1.5px at 300px 20px,#ffe,transparent);background-size:320px 180px;animation:pulse 3s infinite}
 .moon{position:absolute;right:8%;top:6%;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fffde7,#f3e7a1);box-shadow:0 0 60px #fffbd0}
-.sleigh{position:absolute;top:22%;left:-30%;font-size:54px;white-space:nowrap;animation:fly 16s linear infinite}
-@keyframes fly{0%{transform:translate(0,0)}25%{transform:translate(35vw,-20px)}50%{transform:translate(70vw,10px)}100%{transform:translate(140vw,-10px)}}
+.sleigh{
+    position:absolute;
+    top:22%;
+    left:0;
+    font-size:54px;
+    white-space:nowrap;
+    animation:fly 16s linear infinite;
+}
+
+@keyframes fly{
+    from{
+        transform:translateX(110vw);
+    }
+    to{
+        transform:translateX(-130vw);
+    }
+}
 .ptree{position:absolute;bottom:60px;height:min(72vh,580px)}
 .ptree.l{left:1%}.ptree.r{right:1%}
 .ptree svg{height:100%;width:auto}
