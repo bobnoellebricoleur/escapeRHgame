@@ -126,7 +126,7 @@ pre{white-space:pre-wrap;word-break:break-all;background:rgba(0,0,0,.35);padding
 .sleigh{
     position:absolute;
     top:22%;
-    left:0;
+    left:100%;
     font-size:54px;
     white-space:nowrap;
     animation:fly 16s linear infinite;
@@ -134,10 +134,10 @@ pre{white-space:pre-wrap;word-break:break-all;background:rgba(0,0,0,.35);padding
 
 @keyframes fly{
     from{
-        transform:translateX(110vw);
+        left:110%;
     }
     to{
-        transform:translateX(-130vw);
+        left:-30%;
     }
 }
 .ptree{position:absolute;bottom:60px;height:min(72vh,580px)}
