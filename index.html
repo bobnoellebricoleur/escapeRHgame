@@ -507,26 +507,40 @@ function treeSVG(seed) {
 function initMusic() {
   if (MODE !== 'joueur' || !CONFIG.musique) return;
   const fab = $('#musicFab'); if (!fab) return;
-  const a = new Audio(CONFIG.musique);
-  a.loop = true; a.preload = 'auto';
+  const a = new Audio();
+  a.src = CONFIG.musique; a.loop = true; a.preload = 'auto';
   a.volume = Math.min(1, Math.max(0, CONFIG.musiqueVolume == null ? 0.35 : CONFIG.musiqueVolume));
-  let want = LS.get('mn-music', true), started = false;
-  const paint = () => { const on = want && started; fab.textContent = on ? '🔊' : '🔇'; fab.title = on ? 'Couper la musique' : 'Activer la musique'; };
-  const tryPlay = () => { if (!want) return; const pr = a.play(); if (pr && pr.then) pr.then(() => { started = true; paint(); }).catch(() => { }); };
+  let want = LS.get('mn-music', true), playing = false, broken = false;
+  const paint = () => {
+    const on = want && playing;
+    fab.textContent = on ? '🔊' : '🔇';
+    fab.title = on ? 'Couper la musique' : 'Activer la musique';
+  };
+  a.addEventListener('playing', () => { playing = true; paint(); });
+  a.addEventListener('pause', () => { playing = false; paint(); });
+  a.addEventListener('error', () => {
+    broken = true; playing = false; paint();
+    toast('🎵 Fichier musique introuvable : ' + CONFIG.musique);
+  });
+  const tryPlay = manual => {
+    if (broken) return;
+    const pr = a.play();
+    if (pr && pr.catch) pr.catch(err => { if (manual) toast('🎵 Lecture impossible (' + (err && err.name) + ')'); });
+  };
   fab.onclick = e => {
     e.stopPropagation();
-    if (want && started) { want = false; started = false; a.pause(); }
-    else { want = true; tryPlay(); }
+    if (want && playing) { want = false; a.pause(); }
+    else { want = true; if (broken) { broken = false; a.load(); } tryPlay(true); }
     LS.set('mn-music', want); paint();
   };
-  const first = () => { if (!started && want) tryPlay(); };
+  const first = () => { if (want && !playing && !broken) tryPlay(false); };
   ['click', 'touchend', 'keydown'].forEach(ev => document.addEventListener(ev, first));
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) a.pause(); else if (want && started) { const pr = a.play(); if (pr && pr.catch) pr.catch(() => { }); }
+    if (document.hidden) a.pause(); else if (want && !broken) tryPlay(false);
   });
   paint();
 }
-
+    
 /* ---------- scanner de QR code (appareil photo) ---------- */
 async function openScanner() {
   if (document.getElementById('scan')) return;
