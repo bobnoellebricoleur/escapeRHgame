@@ -46,6 +46,7 @@ body.orga #shell{max-width:none;padding:0 18px 40px}
 .btn.ghost{background:rgba(255,255,255,.1);box-shadow:none;border:1px solid rgba(255,255,255,.3);font-size:15px;padding:11px 14px}
 .btn.sm{display:inline-block;width:auto;font-size:14px;padding:8px 12px;margin:0;box-shadow:0 3px 0 rgba(0,0,0,.4)}
 .btn[disabled]{opacity:.45}
+.quiet{display:block;margin:16px auto 0;background:none;border:0;color:#fff;opacity:.55;font:600 13px 'Nunito',sans-serif;text-decoration:underline;cursor:pointer;padding:6px}
 input,textarea,select{width:100%;padding:13px;border-radius:14px;border:2px solid rgba(246,199,68,.5);background:rgba(0,0,0,.28);color:#fff;font-size:18px;font-family:inherit}
 select option{color:#000}
 textarea{resize:vertical}
@@ -79,6 +80,13 @@ label.l{display:block;font-weight:800;margin:12px 0 6px;color:var(--gold)}
 .bub.me{align-self:flex-end;background:#2b6cb0}
 .bub.orga{align-self:flex-start;background:#8d0b17;border:1px solid var(--gold)}
 .bub small{display:block;opacity:.7;font-size:11px;margin-bottom:2px}
+/* musique */
+#musicFab{position:fixed;left:12px;bottom:12px;z-index:3300;width:46px;height:46px;border-radius:50%;border:2px solid var(--gold);background:rgba(6,18,42,.92);color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 4px 14px rgba(0,0,0,.5)}
+/* scanner QR */
+#scan{position:fixed;inset:0;z-index:3400;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:14px;color:#fff}
+#scan video{width:100%;max-width:520px;max-height:65vh;border-radius:18px;object-fit:cover;border:3px solid var(--gold);background:#111}
+#scan p{margin:0;text-align:center;font-weight:700}
+#scan .btn{max-width:320px}
 /* machine à sous */
 .slotwrap{display:flex;justify-content:center;margin:14px 0 6px}
 .slot{position:relative;width:280px;background:linear-gradient(#d4162b,#8d0b17);border:6px solid var(--gold);border-radius:30px 30px 20px 20px;padding:12px 12px 16px;box-shadow:0 0 0 4px #7a5a00,0 18px 40px rgba(0,0,0,.5)}
@@ -199,6 +207,13 @@ const CONFIG = {
   titre: "La Mission du Père Noël",
   sousTitre: "Escape game de Noël",
 
+  /* --- Musique de fond (joueurs uniquement) ---
+     Déposez votre fichier MP3 dans le même dossier GitHub que index.html
+     et indiquez son nom ici. Laissez "" pour désactiver la musique.
+     musiqueVolume : de 0 (muet) à 1 (maximum). */
+  musique: "musique.mp3",
+  musiqueVolume: 0.35,
+
   /* --- Communication entre téléphones et écran de contrôle ---
      Il faut une petite base de données gratuite (Firebase Realtime Database) :
      1. console.firebase.google.com > Créer un projet > Realtime Database > Créer (mode test)
@@ -219,15 +234,15 @@ const CONFIG = {
   antiSpam: { essais: 3, secondes: 10 },   // pause après 3 mauvais essais d'affilée
 
   histoire: {
-    accueil: "Ho ho ho… quelle catastrophe ! 🎅\nCe matin, le Père Noël a été vu par un médecin conseil. Son ALD est reconnue. \n\n Il faut recruter une équipe de lutins experts qui pourra le remplacer le moment venu. La direction a réfléchi à un recrutement en 9 étapes. Chaque étape vous donnera une lettre. Réunies, elles formeront le mot magique qui prouvera votre plus grande force.\n\nAttention : Le père oël fait sa tournée mondiale en une nuit. Il faudra être rapide. Bonne chance !",
+    accueil: "Ho ho ho… quelle catastrophe ! 🎅\nCe matin, le Père Noël a été vu par un médecin conseil. Son ALD est reconnue. \n\n Il faut recruter une équipe de lutins experts qui pourra le remplacer le moment venu. La direction a réfléchi à un recrutement en 8 étapes. Chaque étape vous donnera une lettre. Réunies, elles formeront le mot magique qui prouvera votre plus grande force.\n\nAttention : Le père oël fait sa tournée mondiale en une nuit. Il faudra être rapide. Bonne chance !",
     lobby: "Rassemblez votre équipe ! Une fois le top départ donné, votre premier lieu s'affichera.\nÀ chaque étape : trouvez le lieu grâce à l'énigme, scannez le QR code de l'affiche, répondez à la question… et récoltez une lettre.",
     depart: "Le chrono est lancé ! Votre parcours est unique : vous ne croiserez pas les autres équipes au même endroit. Déchiffrez l'énigme ci-dessous pour trouver votre premier lieu.",
     final: "Vous avez toutes les lettres ! Remontez à l'étage de la direction pour montrer votre succès.",
-    fin: "Ho ho ho ! Bravo à celles et ceux qui ont réussi les 9 étapes. Joyeux Noël à toute l'équipe RH ! 🎄"
+    fin: "Ho ho ho ! Bravo à celles et ceux qui ont réussi les 8 étapes. Joyeux Noël à toute l'équipe RH ! 🎄"
   },
 
   /* --- Équipes : "depart" = numéro du lieu où l'équipe commence. Elle suit ensuite les lieux dans l'ordre
-         de la liste ci-dessous (1→2→…→9→1…). Option : ordre:[3,1,2,...] pour imposer un parcours. --- */
+         de la liste ci-dessous (1→2→…→8→1…). Option : ordre:[3,1,2,...] pour imposer un parcours. --- */
   equipes: {
     jaune: { nom: "Équipe Jaune", couleur: "#f7c531", symbole: "⭐", depart: 1, taille: 5 },
     rouge: { nom: "Équipe Rouge", couleur: "#e53946", symbole: "🎅", depart: 3, taille: 6 },
@@ -235,14 +250,13 @@ const CONFIG = {
     verte: { nom: "Équipe Verte", couleur: "#35b36a", symbole: "🎄", depart: 7, taille: 5 }
   },
 
-  /* --- Les 9 lieux ---
+  /* --- Les 8 lieux ---
      devine   : énigme pour trouver le lieu (affichée à l'étape d'avant)
      ambiance : petit texte narratif sur la page de l'étape
      question / note / indice / bravo / lettre : voir ci-dessous
      CODE : "code" = réponse EN CLAIR (pour brouillon). Pour publier : remplacez par  hash:"..."
             (générateur dans ?orga > onglet Outils). Plusieurs réponses acceptées : code:["12","douze"]
-            Réponse différente par équipe : parEquipe:{ rouge:{code:"3"}, bleue:{hash:"..."} }
-     Codes provisoires : code1 … code8 ; l'étape 9 a sa vraie réponse (1).               */
+            Réponse différente par équipe : parEquipe:{ rouge:{code:"3"}, bleue:{hash:"..."} }  */
   etapes: [
     { id: 1, lieu: "Le service", icone: "🗂️",
       devine: "Chaque enfant dans le monde a son dossier. Commençons par l’armoire contenant le début de l’alphabet. ",
@@ -288,7 +302,7 @@ const CONFIG = {
       indice: "Oui vous avez le droit à google pour cette question.",
       bravo: "Bienvenue au club des lutins qui savent compter ! ",
       lettre: "A", code: "39" },
-    { id: 8, lieu: "Le Patio", icone: "🎁",   // ← à adapter
+    { id: 7, lieu: "Le Patio", icone: "🎁",   // ← à adapter
       devine: "Il est temps de revenir sur vos pas. RDV au lieu de départ de la course. ",
       ambiance: "Un bon lutin doit savoir viser une cheminée sans difficultés. ",
       question: "Quel est le mot code ?",
@@ -301,20 +315,13 @@ const CONFIG = {
       question: "Des nombres ont été cachés, trouvez le seul nombre qui n’est pas un multiple de 8 mais qui est un multiple de 3 et 4. ",
       indice: "Retournez le problème, trouvé un nom qui correspond à ces 3 conditions. Trouvez un multiple de ce même nombre.",
       bravo: "Quel talent d'observation !! Bravo !",
-      lettre: "D", code: "36" },
-    { id: 9, lieu: "à trouver", icone: "🎅🏻",
-      devine: "Aurez vous une bonne mémoire. RDV devant la TV du service RH. ",
-      ambiance: "Les rennes sont en congé : cette année, le Père Noël se déplace… à vélo ? Il doit bien y avoir un indice parmi les roues.",
-      question: "Dans ce local, il y a des vélos, des tricycles, des monocycles et un vélo avec remorque. Le total de roues du local est de 31.\nIl y a 3 tricycles de plus que de monocycles, et 2 fois plus de vélos que de tricycles (le vélo avec remorque, qui a 4 roues, est compté parmi les vélos : il n'y en a qu'un seul).\nCombien y a-t-il de monocycles ?",
-      indice: "Appelez M le nombre de monocycles : tricycles = M+3, vélos = 2×(M+3). Les roues : 2 par vélo (4 pour celui à remorque), 3 par tricycle, 1 par monocycle.",
-      bravo: "Un tour de roue et c'est gagné ! C'était la dernière lettre.",
-      lettre: "E", code: "1" }
+      lettre: "D", code: "36" }
   ],
 
-  /* --- Épreuve finale : les 9 lettres, dans l'ordre des cases 1 à 9 --- */
+  /* --- Épreuve finale : les 8 lettres, dans l'ordre des cases 1 à 8 --- */
   finale: {
-    question: "Quel est le mot de passe de la mémoire du Père Noël ?",
-    code: "GUIRLANDE"        // ou hash:"..." (clé de hash : final)
+    question: "Entrez le mot code pour valider votre",
+    code: "GUIRLAND"        // ou hash:"..." (clé de hash : final)
   }
 };
 </script>
@@ -496,6 +503,65 @@ function treeSVG(seed) {
   return '<svg viewBox="0 0 200 300" xmlns="http://www.w3.org/2000/svg">' + g + b + '<polygon points="100,2 105,14 118,14 108,22 112,35 100,27 88,35 92,22 82,14 95,14" fill="#ffd54a"/></svg>';
 }
 
+/* ---------- musique de fond ---------- */
+function initMusic() {
+  if (MODE !== 'joueur' || !CONFIG.musique) return;
+  const fab = $('#musicFab'); if (!fab) return;
+  const a = new Audio(CONFIG.musique);
+  a.loop = true; a.preload = 'auto';
+  a.volume = Math.min(1, Math.max(0, CONFIG.musiqueVolume == null ? 0.35 : CONFIG.musiqueVolume));
+  let want = LS.get('mn-music', true), started = false;
+  const paint = () => { const on = want && started; fab.textContent = on ? '🔊' : '🔇'; fab.title = on ? 'Couper la musique' : 'Activer la musique'; };
+  const tryPlay = () => { if (!want) return; const pr = a.play(); if (pr && pr.then) pr.then(() => { started = true; paint(); }).catch(() => { }); };
+  fab.onclick = e => {
+    e.stopPropagation();
+    if (want && started) { want = false; started = false; a.pause(); }
+    else { want = true; tryPlay(); }
+    LS.set('mn-music', want); paint();
+  };
+  const first = () => { if (!started && want) tryPlay(); };
+  ['click', 'touchend', 'keydown'].forEach(ev => document.addEventListener(ev, first));
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) a.pause(); else if (want && started) { const pr = a.play(); if (pr && pr.catch) pr.catch(() => { }); }
+  });
+  paint();
+}
+
+/* ---------- scanner de QR code (appareil photo) ---------- */
+async function openScanner() {
+  if (document.getElementById('scan')) return;
+  const ov = document.createElement('div'); ov.id = 'scan';
+  ov.innerHTML = '<video id="scV" playsinline muted></video><p id="scMsg">📷 Visez le QR code de l\'affiche…</p><button class="btn ghost" id="scX">✕ Fermer</button>';
+  document.body.appendChild(ov);
+  let stream = null, raf = 0, stopped = false, n = 0;
+  const stop = () => { stopped = true; cancelAnimationFrame(raf); if (stream) stream.getTracks().forEach(t => t.stop()); stream = null; ov.remove(); };
+  $('#scX', ov).onclick = stop;
+  try {
+    if (!window.jsQR) await loadScript(['https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js', 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js']);
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+  } catch (e) {
+    stop(); toast('📷 Caméra indisponible : utilisez l\'appareil photo du téléphone ou le lien « Ouvrir l\'étape ici ».'); return;
+  }
+  if (stopped) { stream.getTracks().forEach(t => t.stop()); return; }
+  const v = $('#scV', ov); v.srcObject = stream; try { await v.play(); } catch (e) { }
+  const cv = document.createElement('canvas'), cx = cv.getContext('2d', { willReadFrequently: true });
+  const loop = () => {
+    if (stopped) return;
+    if (v.readyState >= 2 && v.videoWidth && (n++ % 3 === 0)) {
+      const sc = Math.min(1, 640 / v.videoWidth); cv.width = Math.round(v.videoWidth * sc); cv.height = Math.round(v.videoHeight * sc);
+      cx.drawImage(v, 0, 0, cv.width, cv.height);
+      const img = cx.getImageData(0, 0, cv.width, cv.height), code = window.jsQR && jsQR(img.data, img.width, img.height, { inversionAttempts: 'dontInvert' });
+      if (code && code.data) {
+        let id = null; try { id = parseInt(new URL(code.data).searchParams.get('step'), 10); } catch (e) { }
+        if (id != null && !isNaN(id)) { stop(); openStep = id; viewKey = ''; navigator.vibrate && navigator.vibrate(120); render(); return; }
+        const m = $('#scMsg'); if (m) m.textContent = '❓ Ce QR code ne fait pas partie du jeu.';
+      }
+    }
+    raf = requestAnimationFrame(loop);
+  };
+  loop();
+}
+
 /* ---------- construction de la page ---------- */
 function buildShell() {
   $('#app').innerHTML = '<canvas id="snow"></canvas><canvas id="confetti"></canvas>' +
@@ -505,7 +571,8 @@ function buildShell() {
     '<main id="view"></main></div>' +
     '<div id="chat"><div style="display:flex;align-items:center;margin-bottom:6px"><h3 style="margin:0;color:var(--gold);font-size:24px">💬 Message au Père Noël</h3><button class="ibtn" id="chatX" style="margin-left:auto">✕</button></div>' +
     '<div id="chatList"></div><textarea id="chatIn" rows="2" maxlength="500" placeholder="Une question ? Un souci ? Écris ici…"></textarea><button class="btn gold" id="chatSend">Envoyer au gérant</button></div>' +
-    '<div id="toast"></div><div id="pod"></div>';
+    '<div id="toast"></div><div id="pod"></div>' +
+    (MODE === 'joueur' && CONFIG.musique ? '<button id="musicFab" aria-label="Musique">🔇</button>' : '');
   $('#chatBtn').onclick = () => toggleChat(true);
   $('#chatX').onclick = () => toggleChat(false);
   $('#chatSend').onclick = sendChat;
@@ -638,9 +705,13 @@ function viewRoute(cur) {
   setView('route-' + k, (prev ? '<div class="card ok"><h2>✅ ' + esc(prev.lieu) + ' : validé !</h2><p>' + nl(prev.bravo) + '</p><p class="muted">Lettre gagnée : <b class="gl">' + esc(prev.lettre) + '</b> (case n°' + prev.id + ')</p></div>' :
     '<div class="card"><h2>🚀 C\'est parti !</h2><p>' + nl(CONFIG.histoire.depart) + '</p></div>') +
     '<div class="card"><h2>🔤 Le mot de passe</h2>' + lettersHTML(tv) + '<p class="muted center">Chaque étape réussie révèle une lettre.</p>' + dotsHTML(tv, order.length) + '</div>' +
-    '<div class="card hl"><h2>📍 Prochain lieu à trouver</h2><p class="riddle">« ' + nl(cur.devine) + ' »</p><p class="muted">Une fois sur place, scanne le QR code de l\'affiche.</p>' +
-    '<button class="btn ghost" id="manual">Le QR code ne marche pas ? Ouvrir l\'étape ici</button></div>',
-    () => { $('#manual').onclick = () => { openStep = cur.id; viewKey = ''; render(); }; });
+    '<div class="card hl"><h2>📍 Prochain lieu à trouver</h2><p class="riddle">« ' + nl(cur.devine) + ' »</p><p class="muted">Une fois sur place, scannez le QR code de l\'affiche.</p>' +
+    '<button class="btn gold" id="scanBtn">📷 Scanner le QR code ici</button>' +
+    '<button class="quiet" id="manual">Le QR code ne marche pas ? Ouvrir l\'étape ici</button></div>',
+    () => {
+      $('#scanBtn').onclick = openScanner;
+      $('#manual').onclick = () => { openStep = cur.id; viewKey = ''; render(); };
+    });
 }
 function viewWrong(cur) {
   const tv = teamView(ME.team), done = !!tv.log['s' + openStep], st = CONFIG.etapes.find(s => s.id === openStep);
@@ -700,7 +771,7 @@ function commitHint(id) {
 }
 function viewFinal() {
   const tv = teamView(ME.team);
-  setView('final', '<div class="card ok"><h2>🎊 Les 9 étapes sont terminées !</h2><p>' + nl(CONFIG.histoire.final) + '</p></div>' +
+  setView('final', '<div class="card ok"><h2>🎊 Les 8 étapes sont terminées !</h2><p>' + nl(CONFIG.histoire.final) + '</p></div>' +
     '<div class="card hl"><h2>🔐 Le mot de passe</h2>' + lettersHTML(tv) + '<p class="question">' + nl(CONFIG.finale.question) + '</p>' +
     '<input id="fin" autocomplete="off" autocapitalize="characters" placeholder="Le mot de passe…"><div id="fb" class="fb"></div><button class="btn gold" id="sub">Déverrouiller la mémoire du Père Noël</button></div>', () => {
       const go = async () => {
@@ -742,7 +813,11 @@ function boardHTML(showRank) {
 let chatOpen = false, readAt = LS.get('mn-read', 0), lastChatSig = '', seenMsg = new Set(), msgInit = false;
 function myMsgs() { return Object.entries(S.msgs || {}).map(([k, m]) => Object.assign({ k }, m)).filter(m => ME && ((ME.team && m.team === ME.team) || m.to === 'all')).sort(cmpMsg); }
 function markRead(list) { readAt = Math.max(readAt, ...list.map(m => m.at || 0)); LS.set('mn-read', readAt); }
-function toggleChat(o) { chatOpen = o; const c = $('#chat'); if (c) c.classList.toggle('open', o); if (o) { markRead(myMsgs()); renderChat(); const l = $('#chatList'); if (l) l.scrollTop = l.scrollHeight; } }
+function toggleChat(o) {
+  chatOpen = o; const c = $('#chat'); if (c) c.classList.toggle('open', o);
+  const f = $('#musicFab'); if (f) f.style.display = o ? 'none' : '';
+  if (o) { markRead(myMsgs()); renderChat(); const l = $('#chatList'); if (l) l.scrollTop = l.scrollHeight; }
+}
 function checkMsgs() {
   for (const m of myMsgs()) { if (!seenMsg.has(m.k)) { seenMsg.add(m.k); if (msgInit && m.from === 'orga') { toast((m.to === 'all' ? '📢 ' : '💬 ') + 'Père Noël : ' + m.text); navigator.vibrate && navigator.vibrate([200, 100, 200]); } } }
   msgInit = true; renderChat();
@@ -988,6 +1063,7 @@ async function showAffiches() {
   buildShell();
   if (MODE === 'affiches') return showAffiches();
   startSnow();
+  initMusic();
   document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
   setInterval(clock, 1000);
   if (MODE === 'orga') { orgaGate(); tick(); setInterval(tick, 2500); return; }
